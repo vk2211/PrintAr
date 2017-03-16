@@ -1,0 +1,7 @@
+<resources>
+	<string name="app_name">PrintAr</string>
+	<string name="open_video">打开</string>
+	<string name="print_frame">抓取</string>
+	<string name="scan_photo">扫描</string>
+	<string name="string_print">打印</string>
+</resources>
