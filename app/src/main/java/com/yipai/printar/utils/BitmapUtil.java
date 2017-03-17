@@ -25,7 +25,7 @@ public class BitmapUtil {
 		mContext = context;
 	}
 
-	public void saveBitmap(Bitmap bitmap, String path) {
+	public  void saveBitmap(Bitmap bitmap, String path) {
 		File file = null;
 		try {
 			file = new File(path);

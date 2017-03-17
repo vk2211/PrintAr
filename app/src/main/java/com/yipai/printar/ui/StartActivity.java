@@ -21,9 +21,10 @@ import com.yipai.printar.adapter.itemcachedata.ItemCacheData;
 import com.yipai.printar.ar.ArCameraActivity;
 import com.yipai.printar.constant.Path;
 import com.yipai.printar.constant.RequestCode;
+import com.yipai.printar.ui.dialog.DialogServer;
 import com.yipai.printar.utils.ArDataSheet;
 import com.yipai.printar.utils.BitmapUtil;
-import com.yipai.printar.utils.dialog.DialogServer;
+
 import com.yipai.printar.utils.file.FileUtil;
 import com.yipai.printar.utils.log.TimeUtil;
 
@@ -41,37 +42,32 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
 	private JCVideoPlayer.JCAutoFullscreenListener sensorEventListener;
 	private SensorManager sensorManager;
 
-
 	JCVideoPlayerStandard mVideo;
 	View mOpenVideo;
 	View mPrintFrame;
 	View mScanPhoto;
-
-	public static final String DIR = "Yipai/ArDemo";
 	private Uri mUri;
-	private ArDataSheet mArDataSheet;
-	private DialogServer mDialogServer;
-	private String VideoPath;
 
+	private DialogServer mDialogServer;
+	private String mVideoPath;
 	private CacheAdapter mCacheAdapter;
 	private EasyRecyclerView mShotImageRecycleView;
-	private Bitmap mShotBitmap;
 	private List<ItemCacheData> mShotImageList;
-	private List<Bitmap> mBitmapList;
 	private BitmapUtil mBitmapUtil;
-
 
 	/**
 	 * 选择对话框接口
 	 */
 	private DialogServer.MydialogInterface mydialogInterface = new DialogServer.MydialogInterface() {
+
+
 		@Override
-		public void OnDoalogDismiss(String result) {
-			if (result.equals("本地视频")) {
+		public void OnDialogmiss(int result) {
+			if (result==0) {
 				Intent it = new Intent(Intent.ACTION_GET_CONTENT);
 				it.setType("video/*");
 				startActivityForResult(it, RequestCode.RC_VIDEO);
-			} else if (result.equals("网络视频")) {
+			} else if (result==1) {
 
 				mUri = Uri.parse("http://test-epai.oss-cn-shenzhen.aliyuncs.com/video/VR/yangshanhu1002.mp4");
 
@@ -80,7 +76,6 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
 				mVideo.setVisibility(View.VISIBLE);
 				mVideo.startButton.performClick();
 				mUri = null;
-
 			}
 		}
 	};
@@ -105,14 +100,14 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
 					if (c != null) {
 						c.moveToFirst();
 						int columnIndex = c.getColumnIndex(filePathColumns[0]);
-						VideoPath = c.getString(columnIndex);
+						mVideoPath = c.getString(columnIndex);
 						c.close();
 					} else {
-						VideoPath = uri.toString();
+						mVideoPath = uri.toString();
 					}
 
 					mVideo.release();
-					mVideo.setUp(VideoPath, JCVideoPlayerStandard.SCREEN_LAYOUT_NORMAL);
+					mVideo.setUp(mVideoPath, JCVideoPlayerStandard.SCREEN_LAYOUT_NORMAL);
 					mVideo.backButton.setVisibility(View.INVISIBLE);
 					mVideo.setVisibility(View.VISIBLE);
 					mVideo.startButton.performClick();
@@ -140,32 +135,35 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
 		super.onPause();
 		sensorManager.unregisterListener(sensorEventListener);
 		JCVideoPlayer.releaseAllVideos();
-
 	}
+
 
 
 	public void getBitmapsFromVideo(long timeUs) {
 		MediaMetadataRetriever retriever = new MediaMetadataRetriever();
-		if (mUri == null && VideoPath == null) {
+		if (mUri == null && mVideoPath == null) {
 
 		} else {
 			if (mUri == null) {
-				retriever.setDataSource(VideoPath, new HashMap<String, String>());
+				retriever.setDataSource(mVideoPath, new HashMap<String, String>());
 
 			} else {
 				retriever.setDataSource(mUri.toString(), new HashMap<String, String>());
 			}
-			//Bitmap bitmap = retriever.getFrameAtTime(timeUs, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
 			Bitmap bitmap = retriever.getFrameAtTime(timeUs, MediaMetadataRetriever.OPTION_CLOSEST);
 			String path = FileUtil.sdcard.getFullPath(Path.CACHE_DIR, "" + TimeUtil.getCurrentTime() + ".jpg");
+			String arpath=FileUtil.sdcard.getFullPath(Path.DIR, "" + TimeUtil.getCurrentTime() + ".jpg");
 
-			Log.e("#######", path);
 			mBitmapUtil.saveBitmap(bitmap, path);
+
 			ItemCacheData itemCacheData = new ItemCacheData();
 			itemCacheData.setImagePath(path);
 			mCacheAdapter.add(itemCacheData);
 			mCacheAdapter.notifyDataSetChanged();
 
+			Path.ImagePath=arpath;
+			Path.VideoPath=mVideoPath;
+			Path.ImageBitmap=bitmap;
 //			mShot.setImageBitmap(bitmap);
 //			String path = FileUtil.sdcard.getFullPath(DIR, "" + TimeUtil.getCurrentTime() + ".jpg");
 //			saveBitmap(bitmap, path);
@@ -207,7 +205,7 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
 		mShotImageRecycleView.setLayoutManager(m);
 		mShotImageRecycleView.setAdapter(mCacheAdapter);
 
-		mArDataSheet = new ArDataSheet(this);
+
 		mOpenVideo.setOnClickListener(this);
 		mPrintFrame.setOnClickListener(this);
 		mScanPhoto.setOnClickListener(this);
@@ -231,4 +229,5 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
 			break;
 		}
 	}
+
 }

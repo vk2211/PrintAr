@@ -11,8 +11,9 @@
 		android:id="@+id/img_catch"
 		android:layout_width="200dp"
 		android:layout_height="150dp"
-		android:scaleType="center"
-		android:src="@drawable/refreshing"/>
+		android:scaleType="centerCrop"
+		android:src="@drawable/refreshing"
+		/>
 
 	<TextView
 		android:id="@+id/tv_print"

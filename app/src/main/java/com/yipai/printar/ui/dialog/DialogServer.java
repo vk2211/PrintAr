@@ -30,24 +30,21 @@ public class DialogServer {
                                 new DialogInterface.OnClickListener() {
                                             @Override
                                             public void onClick(DialogInterface dialog, int which) {
-
                                                         yourChoice=which;
-
                                             }
                                 });
                         singleChoiceDialog.setPositiveButton("确定",
                                 new DialogInterface.OnClickListener() {
                                             @Override
                                             public void onClick(DialogInterface dialog, int which) {
-                                                        mDialogInterface.OnDoalogDismiss(items[yourChoice]);
+                                                        mDialogInterface.OnDialogmiss(yourChoice);
                                                         yourChoice=0;
-
                                             }});
                         singleChoiceDialog.show();
 
             }
 
             public interface MydialogInterface {
-                        public void OnDoalogDismiss(String result);
+                        public void OnDialogmiss(int result);
             }
 }

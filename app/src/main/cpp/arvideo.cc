@@ -161,11 +161,11 @@ void HelloARVideo::render() {
 					video_renderer = renderer[2];
 				} else {
 					int i = 3;
+                    LOGI("############### else, target=%s, namestr[i]=%s",
+                         frame.targets()[0].target().name(), namestr[i].c_str());
 					for (i = 3; i < index; i++) {
-						LOGI("############### else, target=%s, namestr[i]=%s",
-							 frame.targets()[0].target().name(), namestr[i].c_str());
-						LOGI("############### else, url=%s", Map[namestr[i]].c_str());
 						if (frame.targets()[0].target().name() == namestr[i] && texid[i]) {
+                            LOGI("###################### else, url=%s", Map[namestr[i]].c_str());
 							video = new ARVideo;
 							video->openStreamingVideo(Map[namestr[i]], texid[i]);
 							video_renderer = renderer[i];
@@ -270,7 +270,7 @@ JNIEXPORT void JNICALL JNIFUNCTION_NATIVE(add(JNIEnv * env, jobject, jstring s1,
 	std::string str2;
 	jstringToString(env, s1, str1);
 	jstringToString(env, s2, str2);
-	LOGI("s1=%s, s2=%s", str1.c_str(), str2.c_str());
+	LOGI("%%%%%%%%%%%%%%%%%%%%%%%%%%%%% s1=%s, s2=%s", str1.c_str(), str2.c_str());
 	namestr[ar.index] = str1.replace(str1.find(".jpg"), 4, "");
 	Map[str1] = str2;
 	IndexMap[str1] = ar.index++;
