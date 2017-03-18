@@ -94,7 +94,7 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
 						mVideoPath = c.getString(columnIndex);
 						c.close();
 					} else {
-						mVideoPath = uri.toString();
+						mVideoPath = uri.getPath();
 					}
 					mVideo.release();
 					mVideo.setUp(mVideoPath, JCVideoPlayerStandard.SCREEN_LAYOUT_NORMAL);
