@@ -1,6 +1,5 @@
 package com.yipai.printar.ui.realm;
 
-import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 
@@ -8,36 +7,33 @@ import io.realm.annotations.PrimaryKey;
  * Created by liuchuanliang on 2017/3/17.
  */
 
-public class VideoData extends RealmObject{
+public class VideoData extends RealmObject {
+	@PrimaryKey
+	private String mImagePath;
+	private String mVideoPath;
+	private long mStartTime;
 
-            @PrimaryKey
-            private String ImagePath;
-            private String VideoPath;
+	public String getImagePath() {
+		return mImagePath;
+	}
 
-            private RealmList<VideoData> realmList;
+	public void setImagePath(String imagePath) {
+		mImagePath = imagePath;
+	}
 
+	public String getVideoPath() {
+		return mVideoPath;
+	}
 
-            public String getImagePath() {
-                        return ImagePath;
-            }
+	public void setVideoPath(String videoPath) {
+		mVideoPath = videoPath;
+	}
 
-            public void setImagePath(String imagePath) {
-                        ImagePath = imagePath;
-            }
+	public long getStartTime() {
+		return mStartTime;
+	}
 
-            public String getVideoPath() {
-                        return VideoPath;
-            }
-
-            public void setVideoPath(String videoPath) {
-                        VideoPath = videoPath;
-            }
-
-            public RealmList<VideoData> getRealmList() {
-                        return realmList;
-            }
-
-            public void setRealmList(RealmList<VideoData> realmList) {
-                        this.realmList = realmList;
-            }
+	public void setStartTime(long startTime) {
+		mStartTime = startTime;
+	}
 }

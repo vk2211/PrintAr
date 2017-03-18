@@ -1,6 +1,6 @@
 package com.yipai.printar.utils;
 
-import android.content.Context;
+import com.yipai.printar.App;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
@@ -10,42 +10,29 @@ import io.realm.RealmConfiguration;
  */
 
 public class RealmUtils {
+	private static RealmUtils mInstance;
+	private String realName = "myRealm.realm";
 
-            private Context context;
+	public RealmUtils() {
+	}
 
-            private static RealmUtils mInstance;
+	/**
+	 * 单例方式
+	 */
+	public static RealmUtils get() {
+		if (mInstance == null) {
+			synchronized (RealmUtils.class) {
+				if (mInstance == null) {
+					mInstance = new RealmUtils();
+				}
+			}
+		}
+		return mInstance;
+	}
 
-            private String realName = "myRealm.realm";
+	/***获得realm对象*/
+	public Realm getRealm() {
+		return Realm.getInstance(new RealmConfiguration.Builder(App.getContext()).name(realName).build());
 
-            public RealmUtils(Context context) {
-
-                        this.context = context;
-
-            }
-            /**单例方式*/
-
-            public static RealmUtils getInstance(Context context) {
-
-                        if (mInstance == null) {
-
-                                    synchronized (RealmUtils.class) {
-
-                                                if (mInstance == null) {
-
-                                                            mInstance = new RealmUtils(context);
-                                                }
-                                    }
-
-                        }
-
-                        return mInstance;
-
-            }
-            /***获得realm对象*/
-
-            public Realm getRealm() {
-
-                        return Realm.getInstance(new RealmConfiguration.Builder(context).name(realName).build());
-
-            }
+	}
 }

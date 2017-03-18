@@ -11,20 +11,17 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
-import android.util.Log;
 import android.view.View;
 
 import com.jude.easyrecyclerview.EasyRecyclerView;
 import com.yipai.printar.R;
 import com.yipai.printar.adapter.CacheAdapter;
-import com.yipai.printar.adapter.itemcachedata.ItemCacheData;
 import com.yipai.printar.ar.ArCameraActivity;
 import com.yipai.printar.constant.Path;
 import com.yipai.printar.constant.RequestCode;
 import com.yipai.printar.ui.dialog.DialogServer;
-import com.yipai.printar.utils.ArDataSheet;
+import com.yipai.printar.ui.realm.VideoData;
 import com.yipai.printar.utils.BitmapUtil;
-
 import com.yipai.printar.utils.file.FileUtil;
 import com.yipai.printar.utils.log.TimeUtil;
 
@@ -37,22 +34,18 @@ import fm.jiecao.jcvideoplayer_lib.JCVideoPlayerStandard;
 
 
 public class StartActivity extends AppCompatActivity implements View.OnClickListener {
-	private static final String TAG = "StartActivity";
-	public static final String ACTION_MEDIA_SCANNER_SCAN_DIR = "android.intent.action.MEDIA_SCANNER_SCAN_DIR";
 	private JCVideoPlayer.JCAutoFullscreenListener sensorEventListener;
 	private SensorManager sensorManager;
-
 	JCVideoPlayerStandard mVideo;
 	View mOpenVideo;
 	View mPrintFrame;
 	View mScanPhoto;
 	private Uri mUri;
-
 	private DialogServer mDialogServer;
 	private String mVideoPath;
 	private CacheAdapter mCacheAdapter;
 	private EasyRecyclerView mShotImageRecycleView;
-	private List<ItemCacheData> mShotImageList;
+	private List<VideoData> mShotImageList;
 	private BitmapUtil mBitmapUtil;
 
 	/**
@@ -63,14 +56,12 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
 
 		@Override
 		public void OnDialogmiss(int result) {
-			if (result==0) {
+			if (result == 0) {//本地视频
 				Intent it = new Intent(Intent.ACTION_GET_CONTENT);
 				it.setType("video/*");
 				startActivityForResult(it, RequestCode.RC_VIDEO);
-			} else if (result==1) {
-
+			} else if (result == 1) {//网络视频
 				mUri = Uri.parse("http://test-epai.oss-cn-shenzhen.aliyuncs.com/video/VR/yangshanhu1002.mp4");
-
 				mVideo.setUp(mUri.toString(), JCVideoPlayerStandard.SCREEN_LAYOUT_NORMAL);
 				mVideo.backButton.setVisibility(View.INVISIBLE);
 				mVideo.setVisibility(View.VISIBLE);
@@ -85,7 +76,6 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_start);
 		InitStartActivity();
-
 	}
 
 	@Override
@@ -105,7 +95,6 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
 					} else {
 						mVideoPath = uri.toString();
 					}
-
 					mVideo.release();
 					mVideo.setUp(mVideoPath, JCVideoPlayerStandard.SCREEN_LAYOUT_NORMAL);
 					mVideo.backButton.setVisibility(View.INVISIBLE);
@@ -137,8 +126,6 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
 		JCVideoPlayer.releaseAllVideos();
 	}
 
-
-
 	public void getBitmapsFromVideo(long timeUs) {
 		MediaMetadataRetriever retriever = new MediaMetadataRetriever();
 		if (mUri == null && mVideoPath == null) {
@@ -146,38 +133,20 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
 		} else {
 			if (mUri == null) {
 				retriever.setDataSource(mVideoPath, new HashMap<String, String>());
-
 			} else {
 				retriever.setDataSource(mUri.toString(), new HashMap<String, String>());
 			}
 			Bitmap bitmap = retriever.getFrameAtTime(timeUs, MediaMetadataRetriever.OPTION_CLOSEST);
 			String path = FileUtil.sdcard.getFullPath(Path.CACHE_DIR, "" + TimeUtil.getCurrentTime() + ".jpg");
-			String arpath=FileUtil.sdcard.getFullPath(Path.DIR, "" + TimeUtil.getCurrentTime() + ".jpg");
-
 			mBitmapUtil.saveBitmap(bitmap, path);
-
-			ItemCacheData itemCacheData = new ItemCacheData();
+			VideoData itemCacheData = new VideoData();
 			itemCacheData.setImagePath(path);
+			itemCacheData.setVideoPath(mVideoPath);
+			itemCacheData.setStartTime(timeUs);
 			mCacheAdapter.add(itemCacheData);
 			mCacheAdapter.notifyDataSetChanged();
-
-			Path.ImagePath=arpath;
-			Path.VideoPath=mVideoPath;
-			Path.ImageBitmap=bitmap;
-//			mShot.setImageBitmap(bitmap);
-//			String path = FileUtil.sdcard.getFullPath(DIR, "" + TimeUtil.getCurrentTime() + ".jpg");
-//			saveBitmap(bitmap, path);
-//			if(mUri==null){
-//				mArDataSheet.add(path,VideoPath);
-//			}
-//			else {
-//				mArDataSheet.add(path, mUri.toString());
-//			}
-
 		}
-
 	}
-
 
 	/**
 	 * 初始化
@@ -185,7 +154,6 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
 	private void InitStartActivity() {
 
 		mVideo = (JCVideoPlayerStandard) findViewById(R.id.video);
-
 		mOpenVideo = findViewById(R.id.openVideo);
 		mPrintFrame = findViewById(R.id.printFrame);
 		mScanPhoto = findViewById(R.id.scanPhoto);
@@ -194,23 +162,19 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
 		FileUtil.sdcard.createDir(Path.DIR);
 		FileUtil.sdcard.createDir(Path.CACHE_DIR);
 		mDialogServer = new DialogServer(StartActivity.this, mydialogInterface);
-
 		mShotImageRecycleView = (EasyRecyclerView) this.findViewById(R.id.shotList);
 		mBitmapUtil = new BitmapUtil(StartActivity.this);
 		mCacheAdapter = new CacheAdapter(StartActivity.this);
-		mShotImageList = new ArrayList<ItemCacheData>();
+		mShotImageList = new ArrayList<>();
 		mCacheAdapter.addAll(mShotImageList);
 		LinearLayoutManager m = new LinearLayoutManager(this);
 		m.setOrientation(LinearLayoutManager.VERTICAL);
 		mShotImageRecycleView.setLayoutManager(m);
 		mShotImageRecycleView.setAdapter(mCacheAdapter);
-
-
 		mOpenVideo.setOnClickListener(this);
 		mPrintFrame.setOnClickListener(this);
 		mScanPhoto.setOnClickListener(this);
 	}
-
 
 	@Override
 	public void onClick(View v) {
@@ -222,7 +186,6 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
 			int time = mVideo.getCurrentPositionWhenPlaying();
 			getBitmapsFromVideo(time * 1000);
 			break;
-
 		case R.id.scanPhoto:
 			Intent it = new Intent(StartActivity.this, ArCameraActivity.class);
 			startActivity(it);

@@ -1,50 +1,46 @@
 package com.yipai.printar.adapter;
 
 import android.content.Context;
-import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
-
 import com.jude.easyrecyclerview.adapter.BaseViewHolder;
 import com.jude.easyrecyclerview.adapter.RecyclerArrayAdapter;
 import com.yipai.printar.R;
-import com.yipai.printar.adapter.itemcachedata.ItemCacheData;
 import com.yipai.printar.constant.Path;
-import com.yipai.printar.utils.ArDataSheet;
+import com.yipai.printar.ui.realm.VideoData;
 import com.yipai.printar.utils.BitmapUtil;
 import com.yipai.printar.utils.ImageLoader;
-
+import com.yipai.printar.utils.VideoDataSheet;
+import com.yipai.printar.utils.file.FileUtil;
+import com.yipai.printar.utils.log.TimeUtil;
 import java.io.File;
-
 
 /**
  * Created by liuchuanliang on 2017/3/16.
  */
-public class CacheAdapter extends RecyclerArrayAdapter<ItemCacheData> {
+public class CacheAdapter extends RecyclerArrayAdapter<VideoData> {
 	private Context mContext;
-	private ArDataSheet mArDataSheet;
+	private VideoDataSheet mVideoDataSheet;
 	private BitmapUtil mBitmapUtil;
-
 
 	public CacheAdapter(Context context) {
 		super(context);
 		mContext = context;
-		mArDataSheet=new ArDataSheet(mContext);
-		mBitmapUtil=new BitmapUtil(mContext);
-
+		mBitmapUtil = new BitmapUtil(mContext);
+		mVideoDataSheet = VideoDataSheet.get();
 	}
-
 
 	@Override
 	public BaseViewHolder OnCreateViewHolder(ViewGroup parent, int viewType) {
 		return new CacheDataViewHolder(parent);
 	}
 
-	class CacheDataViewHolder extends BaseViewHolder<ItemCacheData> {
+	class CacheDataViewHolder extends BaseViewHolder<VideoData> {
 		private ImageView cacheIamge;
 		private TextView tv_print;
 
@@ -55,33 +51,22 @@ public class CacheAdapter extends RecyclerArrayAdapter<ItemCacheData> {
 			tv_print.setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View v) {
-					if(!Path.ImagePath.equals("")&&!Path.VideoPath.equals("")){
-
-						mArDataSheet.realmAdd(Path.ImagePath,Path.VideoPath);
-						if(Path.ImageBitmap!=null){
-							mBitmapUtil.saveBitmap(Path.ImageBitmap,Path.ImagePath);
-							Path.ImagePath="";
-							Path.VideoPath="";
-
-//							Intent intent=new Intent();
-//							intent.setClassName(mContext,"com.hiti.prinhome.SwitchNode");
-//							mContext.startActivity(intent);
-
-							Toast.makeText(mContext, "start print", Toast.LENGTH_SHORT).show();
-						}
-					}
+					int pos = CacheDataViewHolder.this.getDataPosition();
+					VideoData videoData = CacheAdapter.this.getItem(pos);
+					Bitmap bitmap = BitmapFactory.decodeFile(videoData.getImagePath());
+					String arpath = FileUtil.sdcard.getFullPath(Path.DIR, "" + TimeUtil.getCurrentTime() + ".jpg");
+					videoData.setImagePath(arpath);
+					mVideoDataSheet.add(videoData);
+					mBitmapUtil.saveBitmap(bitmap, arpath);
 				}
 			});
 		}
 
 		@Override
-		public void setData(ItemCacheData data) {
+		public void setData(VideoData data) {
 			super.setData(data);
 			ImageLoader.showImageView(mContext, Uri.fromFile(new File(data.getImagePath())).toString(), cacheIamge);
 			tv_print.setText("打印");
 		}
 	}
-
-
-
 }

@@ -40,6 +40,7 @@ public:
     void setVideoType(VideoType videoType);
 
     void open(const char* path, StorageType storageType, VideoPlayerCallBack* callback = 0);
+
     void close();
 
     bool play();
