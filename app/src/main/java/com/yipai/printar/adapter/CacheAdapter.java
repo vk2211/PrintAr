@@ -49,7 +49,7 @@ public class CacheAdapter extends RecyclerArrayAdapter<VideoData> {
 			ComponentName cn = null;
 			if (result == 0) {
 				cn = new ComponentName("com.hiti.pringo", "com.hiti.pringo.MainActivity");
-				if (PackageUtil.isAppExist(mContext,"com.hiti.pringo")) {
+				if (PackageUtil.isAppExist(mContext, "com.hiti.pringo")) {
 					intent.setComponent(cn);
 					App.getContext().startActivity(intent);
 				} else {
@@ -57,7 +57,7 @@ public class CacheAdapter extends RecyclerArrayAdapter<VideoData> {
 				}
 			} else if (result == 1) {
 				cn = new ComponentName("com.hiti.prinhome", "com.hiti.prinhome.SwitchNode");
-				if (PackageUtil.isAppExist(mContext,"com.hiti.prinhome")) {
+				if (PackageUtil.isAppExist(mContext, "com.hiti.prinhome")) {
 					intent.setComponent(cn);
 					App.getContext().startActivity(intent);
 				} else {
@@ -106,8 +106,8 @@ public class CacheAdapter extends RecyclerArrayAdapter<VideoData> {
 		@Override
 		public void setData(VideoData data) {
 			super.setData(data);
-			ImageLoader.showImageView(mContext, Uri.fromFile(new File(data.getImagePath())).toString(), cacheIamge);
-			tv_print.setText("打印");
+				ImageLoader.showImageView(mContext, Uri.fromFile(new File(data.getImagePath())).toString(), cacheIamge);
+			//tv_print.setText("打印");
 		}
 	}
 }

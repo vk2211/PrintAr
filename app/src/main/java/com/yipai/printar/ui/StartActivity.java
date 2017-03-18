@@ -9,25 +9,24 @@ import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.view.View;
 
-import com.jude.easyrecyclerview.EasyRecyclerView;
 import com.yipai.printar.R;
-import com.yipai.printar.adapter.CacheAdapter;
 import com.yipai.printar.ar.ArCameraActivity;
 import com.yipai.printar.constant.Path;
 import com.yipai.printar.constant.RequestCode;
 import com.yipai.printar.ui.dialog.SingleChoiceDialog;
 import com.yipai.printar.ui.realm.VideoData;
+import com.yipai.printar.ui.view.ShotImageRecyclerView;
 import com.yipai.printar.utils.BitmapUtil;
 import com.yipai.printar.utils.file.FileUtil;
 import com.yipai.printar.utils.log.TimeUtil;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -44,12 +43,12 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
 	private Uri mUri;
 	private SingleChoiceDialog mSingleChoiceDialog;
 	private String mVideoPath;
-	private CacheAdapter mCacheAdapter;
-	private EasyRecyclerView mShotImageRecycleView;
+	private ShotImageRecyclerView mShotImageRecycleView;
 	private List<VideoData> mShotImageList;
 	private BitmapUtil mBitmapUtil;
 	private String mDialogTitle = "选择视频";
 	private String[] mDialogItems = {"本地视频", "网络视频"};
+	private Handler mHandler = new Handler();
 
 	/**
 	 * 选择对话框接口
@@ -63,11 +62,11 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
 				startActivityForResult(it, RequestCode.RC_VIDEO);
 			} else if (result == 1) {//网络视频
 				mUri = Uri.parse("http://test-epai.oss-cn-shenzhen.aliyuncs.com/video/VR/yangshanhu1002.mp4");
+				mVideoPath = null;
 				mVideo.setUp(mUri.toString(), JCVideoPlayerStandard.SCREEN_LAYOUT_NORMAL);
 				mVideo.backButton.setVisibility(View.INVISIBLE);
 				mVideo.setVisibility(View.VISIBLE);
 				mVideo.startButton.performClick();
-				mUri = null;
 			}
 		}
 	};
@@ -91,11 +90,14 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
 					if (c != null) {
 						c.moveToFirst();
 						int columnIndex = c.getColumnIndex(filePathColumns[0]);
-						mVideoPath = c.getString(columnIndex);
+						if (columnIndex >= 0) {
+							mVideoPath = c.getString(columnIndex);
+						}
 						c.close();
 					} else {
-						mVideoPath = uri.getPath();
+						mVideoPath = uri.toString();
 					}
+					mUri = null;
 					mVideo.release();
 					mVideo.setUp(mVideoPath, JCVideoPlayerStandard.SCREEN_LAYOUT_NORMAL);
 					mVideo.backButton.setVisibility(View.INVISIBLE);
@@ -133,29 +135,41 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		FileUtil.deleteAllFiles(new File(Environment.getExternalStorageDirectory().toString()+"/"+Path.CACHE_DIR));
+		FileUtil.deleteAllFiles(new File(Environment.getExternalStorageDirectory().toString() + "/" + Path.CACHE_DIR));
 	}
 
-	public void getBitmapsFromVideo(long timeUs) {
-		MediaMetadataRetriever retriever = new MediaMetadataRetriever();
-		if (mUri == null && mVideoPath == null) {
-
-		} else {
-			if (mUri == null) {
-				retriever.setDataSource(mVideoPath, new HashMap<String, String>());
-			} else {
-				retriever.setDataSource(mUri.toString(), new HashMap<String, String>());
+	public void getBitmapsFromVideo(final long timeUs) {
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+				if (mVideoPath != null) {
+					retriever.setDataSource(mVideoPath, new HashMap<String, String>());
+				} else if (mUri != null) {
+					retriever.setDataSource(mUri.toString(), new HashMap<String, String>());
+				}
+				Bitmap bitmap = retriever.getFrameAtTime(timeUs, MediaMetadataRetriever.OPTION_CLOSEST);
+				if (bitmap != null) {
+					String fileName = "" + TimeUtil.getCurrentTime() + ".jpg";
+					final String path = FileUtil.sdcard.getFullPath(Path.CACHE_DIR, fileName);
+					mBitmapUtil.saveBitmap(bitmap, path);
+					mHandler.post(new Runnable() {
+						@Override
+						public void run() {
+							VideoData itemCacheData = new VideoData();
+							itemCacheData.setImagePath(path);
+							itemCacheData.setVideoPath(mVideoPath);
+							itemCacheData.setStartTime(timeUs);
+							mShotImageRecycleView.add(itemCacheData);
+							mShotImageRecycleView.notifyDataSetChanged();
+							int count = mShotImageRecycleView.getItemCount();
+							LinearLayoutManager m = (LinearLayoutManager) mShotImageRecycleView.getLayoutManager();
+							m.scrollToPositionWithOffset(count, 0);
+						}
+					});
+				}
 			}
-			Bitmap bitmap = retriever.getFrameAtTime(timeUs, MediaMetadataRetriever.OPTION_CLOSEST);
-			String path = FileUtil.sdcard.getFullPath(Path.CACHE_DIR, "" + TimeUtil.getCurrentTime() + ".jpg");
-			mBitmapUtil.saveBitmap(bitmap, path);
-			VideoData itemCacheData = new VideoData();
-			itemCacheData.setImagePath(path);
-			itemCacheData.setVideoPath(mVideoPath);
-			itemCacheData.setStartTime(timeUs);
-			mCacheAdapter.add(itemCacheData);
-			mCacheAdapter.notifyDataSetChanged();
-		}
+		}).start();
 	}
 
 	/**
@@ -170,16 +184,17 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
 		sensorEventListener = new JCVideoPlayer.JCAutoFullscreenListener();
 		FileUtil.sdcard.createDir(Path.DIR);
 		FileUtil.sdcard.createDir(Path.CACHE_DIR);
-		mSingleChoiceDialog = new SingleChoiceDialog(StartActivity.this, mSingleSelectInterface, mDialogTitle, mDialogItems);
-		mShotImageRecycleView = (EasyRecyclerView) this.findViewById(R.id.shotList);
+		mSingleChoiceDialog = new SingleChoiceDialog(this, mSingleSelectInterface, mDialogTitle, mDialogItems);
+		mShotImageRecycleView = (ShotImageRecyclerView) this.findViewById(R.id.shotList);
 		mBitmapUtil = new BitmapUtil(StartActivity.this);
-		mCacheAdapter = new CacheAdapter(StartActivity.this);
-		mShotImageList = new ArrayList<>();
-		mCacheAdapter.addAll(mShotImageList);
+//		mCacheAdapter = new CacheAdapter(StartActivity.this);
+//		mShotImageList = new ArrayList<>();
+//		mCacheAdapter.addAll(mShotImageList);
 		LinearLayoutManager m = new LinearLayoutManager(this);
 		m.setOrientation(LinearLayoutManager.VERTICAL);
 		mShotImageRecycleView.setLayoutManager(m);
-		mShotImageRecycleView.setAdapter(mCacheAdapter);
+//		mShotImageRecycleView.setAdapter(mCacheAdapter);
+		mShotImageRecycleView.enableRefresh(false);
 		mOpenVideo.setOnClickListener(this);
 		mPrintFrame.setOnClickListener(this);
 		mScanPhoto.setOnClickListener(this);

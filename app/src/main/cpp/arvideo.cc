@@ -6,11 +6,12 @@
 
 #include <string>
 #include <map>
+#include <vector>
 #include "ar.hpp"
 #include "renderer.hpp"
 #include <jni.h>
 #include <GLES2/gl2.h>
-#ifdef ANDROID
+#ifdef ANDROI1D
 #include <android/log.h>
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, "EasyAR", __VA_ARGS__)
 #else
@@ -31,10 +32,8 @@ extern "C" {
 };
 bool jstringToString(JNIEnv* env, jstring jstr, std::string &stlStr);
 
-#define MAX_RECOGNIZE 100
-std::string namestr[MAX_RECOGNIZE];
-std::map<std::string, std::string> Map;
-std::map<std::string, int> IndexMap;
+//#define MAX_RECOGNIZE 100
+//std::string namestr[MAX_RECOGNIZE];
 
 
 JNIEXPORT jboolean JNICALL
@@ -67,12 +66,18 @@ public:
 	int index;
 private:
 	Vec2I view_size;
-	VideoRenderer *renderer[MAX_RECOGNIZE];
+//	VideoRenderer *renderer[MAX_RECOGNIZE];
+	std::vector<VideoRenderer *> renderer;
 	int tracked_target;
 	int active_target;
-	int texid[MAX_RECOGNIZE];
+//	int texid[MAX_RECOGNIZE];
+	std::vector<int> texid;
 	ARVideo *video;
 	VideoRenderer *video_renderer;
+public:
+	std::vector<std::string> namestr;
+	std::map<std::string, std::string> Map;
+	std::map<std::string, int> IndexMap;
 };
 
 HelloARVideo::HelloARVideo() {
@@ -80,35 +85,33 @@ HelloARVideo::HelloARVideo() {
 	view_size[0] = -1;
 	tracked_target = 0;
 	active_target = 0;
-	for (i = 0; i < MAX_RECOGNIZE; ++i) {
-		texid[i] = 0;
-		renderer[i] = new VideoRenderer;
-	}
 	video = NULL;
 	video_renderer = NULL;
-	index = 3;
+	index = 0;
 }
 
 HelloARVideo::~HelloARVideo() {
-	int i;
-	for (i = 0; i < MAX_RECOGNIZE; ++i) {
-		delete renderer[i];
+	std::vector<VideoRenderer *>::iterator iter;
+	for (iter = renderer.begin(); iter != renderer.end(); iter++) {
+		delete *iter;
 	}
 }
 
 void HelloARVideo::initGL() {
 	augmenter_ = Augmenter();
 	augmenter_.attachCamera(camera_);
-	int i;
-	for (i = 0; i < MAX_RECOGNIZE; ++i) {
-		renderer[i]->init();
-		texid[i] = renderer[i]->texId();
+	std::vector<VideoRenderer *>::iterator iterRenderer;
+	for (iterRenderer = renderer.begin(); iterRenderer != renderer.end(); iterRenderer++) {
+		(*iterRenderer)->init();
+		texid.push_back((*iterRenderer)->texId());
 	}
 }
 
 void HelloARVideo::addGL() {
-	renderer[index]->init();
-	texid[index] = renderer[index]->texId();
+	VideoRenderer *r = new VideoRenderer;
+	r->init();
+	renderer.push_back(r);
+	texid.push_back(r->texId());
 	index++;
 }
 
@@ -144,33 +147,18 @@ void HelloARVideo::render() {
 		if (!tracked_target) {
 			if (video == NULL) {
 				LOGI("############### target=%s", frame.targets()[0].target().name());
-				if (frame.targets()[0].target().name() == std::string("argame") && texid[0]) {
-					video = new ARVideo;
-					video->openVideoFile("video.mp4", texid[0]);
-					video_renderer = renderer[0];
-				}
-				else if (frame.targets()[0].target().name() == std::string("namecard") && texid[1]) {
-					video = new ARVideo;
-					video->openTransparentVideoFile("transparentvideo.mp4", texid[1]);
-					video_renderer = renderer[1];
-				}
-				else if (frame.targets()[0].target().name() == std::string("idback") && texid[2]) {
-					video = new ARVideo;
-					video->openStreamingVideo(
-						"http://7xl1ve.com5.z0.glb.clouddn.com/sdkvideo/EasyARSDKShow201520.mp4", texid[2]);
-					video_renderer = renderer[2];
-				} else {
-					int i = 3;
-                    LOGI("############### else, target=%s, namestr[i]=%s",
-                         frame.targets()[0].target().name(), namestr[i].c_str());
-					for (i = 3; i < index; i++) {
-						if (frame.targets()[0].target().name() == namestr[i] && texid[i]) {
-                            LOGI("###################### else, url=%s", Map[namestr[i]].c_str());
-							video = new ARVideo;
-							video->openStreamingVideo(Map[namestr[i]], texid[i]);
-							video_renderer = renderer[i];
-							break;
-						}
+
+				int i = 0;
+				LOGI("############### else, target=%s, namestr[i]=%s",
+					 frame.targets()[0].target().name(), namestr[i].c_str());
+				size_t size = namestr.size();
+				for (i = 0; i < size; i++) {
+					if (frame.targets()[0].target().name() == namestr.at(i) && texid[i]) {
+//						LOGI("###################### else, url=%s", Map[namestr[i]].c_str());
+						video = new ARVideo;
+						video->openStreamingVideo(Map[namestr[i]], texid[i]);
+						video_renderer = renderer[i];
+						break;
 					}
 				}
 			}
@@ -226,21 +214,17 @@ bool jstringToString(JNIEnv *env, jstring jstr, std::string &stlStr) {
 	return true;
 }
 
-EasyAR::samples::HelloARVideo ar;
+static EasyAR::samples::HelloARVideo ar;
 
 JNIEXPORT jboolean JNICALL JNIFUNCTION_NATIVE(init(JNIEnv * , jobject)) {
 	int i;
 	bool status = ar.initCamera();
-	ar.loadAllFromJsonFile("targets.json");
-	ar.loadFromImage("namecard.jpg");
-	for (i = 3; i < ar.index; i++) {
-		LOGI("############# nativeInit, str=%s", namestr[i].c_str());
-		ar.loadFromImage(namestr[i] + ".jpg");
+	std::vector<std::string>::iterator iter;
+	for (iter = ar.namestr.begin(); iter != ar.namestr.end(); iter++) {
+		LOGI("############# nativeInit, str=%s", (*iter).c_str());
+		ar.loadFromImage(*iter + ".jpg");
+		ar.addGL();
 	}
-//    ar.loadFromImage("/storage/emulated/0/Yipai/ArDemo/1489350086109.jpg");
-//    ar.loadAbsoluteImage("/storage/emulated/0/Yipai/ArDemo/1489350086109.jpg");
-//    ar.loadFromImage("/sdcard/Yipai/ArDemo/1489350086109.jpg");
-//    ar.loadAbsoluteImage("/sdcard//Yipai/ArDemo/1489350086109.jpg");
 	status &= ar.start();
 	return status;
 }
@@ -270,8 +254,8 @@ JNIEXPORT void JNICALL JNIFUNCTION_NATIVE(add(JNIEnv * env, jobject, jstring s1,
 	std::string str2;
 	jstringToString(env, s1, str1);
 	jstringToString(env, s2, str2);
-	LOGI("%%%%%%%%%%%%%%%%%%%%%%%%%%%%% s1=%s, s2=%s", str1.c_str(), str2.c_str());
-	namestr[ar.index] = str1.replace(str1.find(".jpg"), 4, "");
-	Map[str1] = str2;
-	IndexMap[str1] = ar.index++;
+//	LOGI("%%%%%%%%%%%%%%%%%%%%%%%%%%%%% s1=%s, s2=%s", str1.c_str(), str2.c_str());
+	ar.namestr.push_back(str1.replace(str1.find(".jpg"), 4, ""));
+	ar.Map[str1] = str2;
+	ar.IndexMap[str1] = ar.index++;
 }
