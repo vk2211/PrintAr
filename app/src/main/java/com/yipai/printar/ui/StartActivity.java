@@ -8,6 +8,7 @@ import android.hardware.SensorManager;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -19,19 +20,19 @@ import com.yipai.printar.adapter.CacheAdapter;
 import com.yipai.printar.ar.ArCameraActivity;
 import com.yipai.printar.constant.Path;
 import com.yipai.printar.constant.RequestCode;
-import com.yipai.printar.ui.dialog.DialogServer;
+import com.yipai.printar.ui.dialog.SingleChoiceDialog;
 import com.yipai.printar.ui.realm.VideoData;
 import com.yipai.printar.utils.BitmapUtil;
 import com.yipai.printar.utils.file.FileUtil;
 import com.yipai.printar.utils.log.TimeUtil;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 import fm.jiecao.jcvideoplayer_lib.JCVideoPlayer;
 import fm.jiecao.jcvideoplayer_lib.JCVideoPlayerStandard;
-
 
 public class StartActivity extends AppCompatActivity implements View.OnClickListener {
 	private JCVideoPlayer.JCAutoFullscreenListener sensorEventListener;
@@ -41,21 +42,21 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
 	View mPrintFrame;
 	View mScanPhoto;
 	private Uri mUri;
-	private DialogServer mDialogServer;
+	private SingleChoiceDialog mSingleChoiceDialog;
 	private String mVideoPath;
 	private CacheAdapter mCacheAdapter;
 	private EasyRecyclerView mShotImageRecycleView;
 	private List<VideoData> mShotImageList;
 	private BitmapUtil mBitmapUtil;
+	private String mDialogTitle = "选择视频";
+	private String[] mDialogItems = {"本地视频", "网络视频"};
 
 	/**
 	 * 选择对话框接口
 	 */
-	private DialogServer.MydialogInterface mydialogInterface = new DialogServer.MydialogInterface() {
-
-
+	private SingleChoiceDialog.SingleSelectInterface mSingleSelectInterface = new SingleChoiceDialog.SingleSelectInterface() {
 		@Override
-		public void OnDialogmiss(int result) {
+		public void OnSingleSelect(int result) {
 			if (result == 0) {//本地视频
 				Intent it = new Intent(Intent.ACTION_GET_CONTENT);
 				it.setType("video/*");
@@ -126,6 +127,15 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
 		JCVideoPlayer.releaseAllVideos();
 	}
 
+	/**
+	 * 退出程序时，删掉缓存图片
+	 */
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		FileUtil.deleteAllFiles(new File(Environment.getExternalStorageDirectory().toString()+"/"+Path.CACHE_DIR));
+	}
+
 	public void getBitmapsFromVideo(long timeUs) {
 		MediaMetadataRetriever retriever = new MediaMetadataRetriever();
 		if (mUri == null && mVideoPath == null) {
@@ -152,7 +162,6 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
 	 * 初始化
 	 */
 	private void InitStartActivity() {
-
 		mVideo = (JCVideoPlayerStandard) findViewById(R.id.video);
 		mOpenVideo = findViewById(R.id.openVideo);
 		mPrintFrame = findViewById(R.id.printFrame);
@@ -161,7 +170,7 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
 		sensorEventListener = new JCVideoPlayer.JCAutoFullscreenListener();
 		FileUtil.sdcard.createDir(Path.DIR);
 		FileUtil.sdcard.createDir(Path.CACHE_DIR);
-		mDialogServer = new DialogServer(StartActivity.this, mydialogInterface);
+		mSingleChoiceDialog = new SingleChoiceDialog(StartActivity.this, mSingleSelectInterface, mDialogTitle, mDialogItems);
 		mShotImageRecycleView = (EasyRecyclerView) this.findViewById(R.id.shotList);
 		mBitmapUtil = new BitmapUtil(StartActivity.this);
 		mCacheAdapter = new CacheAdapter(StartActivity.this);
@@ -180,7 +189,7 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
 	public void onClick(View v) {
 		switch (v.getId()) {
 		case R.id.openVideo:
-			mDialogServer.showSingleChoiceDialog();
+			mSingleChoiceDialog.showSingleChoiceDialog();
 			break;
 		case R.id.printFrame:
 			int time = mVideo.getCurrentPositionWhenPlaying();
