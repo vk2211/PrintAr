@@ -62,22 +62,17 @@ public:
 	virtual void render();
 
 	virtual bool clear();
-
-	int index;
 private:
 	Vec2I view_size;
-//	VideoRenderer *renderer[MAX_RECOGNIZE];
 	std::vector<VideoRenderer *> renderer;
 	int tracked_target;
 	int active_target;
-//	int texid[MAX_RECOGNIZE];
 	std::vector<int> texid;
 	ARVideo *video;
 	VideoRenderer *video_renderer;
 public:
 	std::vector<std::string> namestr;
 	std::map<std::string, std::string> Map;
-	std::map<std::string, int> IndexMap;
 };
 
 HelloARVideo::HelloARVideo() {
@@ -87,7 +82,6 @@ HelloARVideo::HelloARVideo() {
 	active_target = 0;
 	video = NULL;
 	video_renderer = NULL;
-	index = 0;
 }
 
 HelloARVideo::~HelloARVideo() {
@@ -100,10 +94,9 @@ HelloARVideo::~HelloARVideo() {
 void HelloARVideo::initGL() {
 	augmenter_ = Augmenter();
 	augmenter_.attachCamera(camera_);
-	std::vector<VideoRenderer *>::iterator iterRenderer;
-	for (iterRenderer = renderer.begin(); iterRenderer != renderer.end(); iterRenderer++) {
-		(*iterRenderer)->init();
-		texid.push_back((*iterRenderer)->texId());
+	std::vector<std::string>::iterator iter;
+	for (iter = namestr.begin(); iter != namestr.end(); iter++) {
+		addGL();
 	}
 }
 
@@ -112,7 +105,6 @@ void HelloARVideo::addGL() {
 	r->init();
 	renderer.push_back(r);
 	texid.push_back(r->texId());
-	index++;
 }
 
 void HelloARVideo::resizeGL(int width, int height) {
@@ -134,7 +126,7 @@ void HelloARVideo::render() {
 	glViewport(viewport_[0], viewport_[1], viewport_[2], viewport_[3]);
 
 	AugmentedTarget::Status status = frame.targets()[0].status();
-//  LOGI("############### AugmentedTarget::Status status = frame.targets()[0].status()");
+  LOGI("############### AugmentedTarget::Status status = frame.targets()[0].status()");
 	if (status == AugmentedTarget::kTargetStatusTracked) {
 		int id = frame.targets()[0].target().id();
 		if (active_target && active_target != id) {
@@ -154,7 +146,7 @@ void HelloARVideo::render() {
 				size_t size = namestr.size();
 				for (i = 0; i < size; i++) {
 					if (frame.targets()[0].target().name() == namestr.at(i) && texid[i]) {
-//						LOGI("###################### else, url=%s", Map[namestr[i]].c_str());
+						LOGI("###################### else, url=%s", Map[namestr[i]].c_str());
 						video = new ARVideo;
 						video->openStreamingVideo(Map[namestr[i]], texid[i]);
 						video_renderer = renderer[i];
@@ -193,7 +185,6 @@ bool HelloARVideo::clear() {
 	}
 	return true;
 }
-
 	}
 }
 
@@ -202,7 +193,6 @@ bool jstringToString(JNIEnv *env, jstring jstr, std::string &stlStr) {
 		stlStr.assign("");
 		return true;
 	}
-
 	const char *str = env->GetStringUTFChars(jstr, NULL);
 	if (str == NULL) {
 		LOGI("GetStringUTFChars fail!");
@@ -210,7 +200,6 @@ bool jstringToString(JNIEnv *env, jstring jstr, std::string &stlStr) {
 	}
 	stlStr.assign(str);
 	env->ReleaseStringUTFChars(jstr, str);
-
 	return true;
 }
 
@@ -223,7 +212,6 @@ JNIEXPORT jboolean JNICALL JNIFUNCTION_NATIVE(init(JNIEnv * , jobject)) {
 	for (iter = ar.namestr.begin(); iter != ar.namestr.end(); iter++) {
 		LOGI("############# nativeInit, str=%s", (*iter).c_str());
 		ar.loadFromImage(*iter + ".jpg");
-		ar.addGL();
 	}
 	status &= ar.start();
 	return status;
@@ -254,8 +242,7 @@ JNIEXPORT void JNICALL JNIFUNCTION_NATIVE(add(JNIEnv * env, jobject, jstring s1,
 	std::string str2;
 	jstringToString(env, s1, str1);
 	jstringToString(env, s2, str2);
-//	LOGI("%%%%%%%%%%%%%%%%%%%%%%%%%%%%% s1=%s, s2=%s", str1.c_str(), str2.c_str());
+	LOGI("$$$$$$$$$$$$$$$$$ s1=%s, s2=%s", str1.c_str(), str2.c_str());
 	ar.namestr.push_back(str1.replace(str1.find(".jpg"), 4, ""));
 	ar.Map[str1] = str2;
-	ar.IndexMap[str1] = ar.index++;
 }
