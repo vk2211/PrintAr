@@ -50,15 +50,10 @@ public abstract class EasyLoadPageRecyclerView<T> extends EasyRecyclerView {
 		this.setLayoutManager(linearLayoutManager);
 		this.setAdapter(mAdapter);
 		initRefresh();
-		loadDataList();
+//		loadDataList();
 	}
 
 	private void initRefresh() {
-		mAdapter.setMore(R.layout.layout_erv_more, new RecyclerArrayAdapter.OnLoadMoreListener() {
-			@Override
-			public void onLoadMore() {
-			}
-		});
 		mAdapter.setMore(R.layout.layout_erv_more, new RecyclerArrayAdapter.OnMoreListener() {
 			@Override
 			public void onMoreShow() {
@@ -67,7 +62,6 @@ public abstract class EasyLoadPageRecyclerView<T> extends EasyRecyclerView {
 
 			@Override
 			public void onMoreClick() {
-
 			}
 		});
 		mAdapter.setNoMore(R.layout.layout_erv_nomore, new RecyclerArrayAdapter.OnNoMoreListener() {
@@ -139,7 +133,7 @@ public abstract class EasyLoadPageRecyclerView<T> extends EasyRecyclerView {
 			mAdapter.addAll(dataList);
 			mAdapter.notifyDataSetChanged();
 		}
-		mAdapter.stopMore();
+//		mAdapter.stopMore();
 	}
 
 	public void setOnItemClickListener(RecyclerArrayAdapter.OnItemClickListener listener) {

@@ -30,7 +30,7 @@ import java.util.List;
 public class PackageUtil {
 	public static boolean install(Context context, File apk) {
 		Intent intent = new Intent(Intent.ACTION_VIEW);
-		//由于没有在Activity环境下启动Activity, 设置下面的标签
+		// 安装完成时会结束当前应用，导致安装界面退出，所以需要启动一个NewTask来升级应用
 		intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		intent.setDataAndType(Uri.fromFile(apk), "application/vnd.android.package-archive");
 		context.startActivity(intent);
