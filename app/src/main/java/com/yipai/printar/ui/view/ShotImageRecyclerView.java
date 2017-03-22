@@ -16,7 +16,7 @@ import android.util.AttributeSet;
 
 import com.jude.easyrecyclerview.adapter.RecyclerArrayAdapter;
 import com.yipai.printar.adapter.CacheAdapter;
-import com.yipai.printar.ui.realm.VideoData;
+import com.yipai.printar.bean.VideoData;
 
 /**
  * Created by yaochuan on 2017/3/18.

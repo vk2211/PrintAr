@@ -17,6 +17,6 @@ package com.yipai.printar.constant;
  */
 public class Path {
 	private static final String TAG = Path.class.getSimpleName();
-	public static final String DIR = "Yipai/ArDemo";
-	public static final String CACHE_DIR="Yipai/Cache";
+	public static final String DIR = "Yipai/ArDemo/";
+	public static final String CACHE_DIR="Yipai/Cache/";
 }

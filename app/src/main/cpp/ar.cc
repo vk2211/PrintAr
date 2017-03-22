@@ -59,7 +59,7 @@ void AR::loadFromImage(const std::string& path)
                            "    }\n"
                            "  ]\n"
                            "}";
-    target.load(jstr.c_str(), EasyAR::kStorageAssets | EasyAR::kStorageJson);
+    bool ret = target.load(jstr.c_str(), EasyAR::kStorageAssets | EasyAR::kStorageJson);
     tracker_.loadTarget(target, new HelloCallBack());
 }
 
@@ -192,17 +192,26 @@ void ARVideo::openStreamingVideo(const std::string& url, int texid)
     player_.open(url.c_str(), kStorageAbsolute, callback_);
 }
 
+void ARVideo::seek(int position) {
+	player_.seek(position);
+	pos = position;
+}
+
 void ARVideo::setVideoStatus(VideoPlayer::Status status)
 {
     LOGI("video: %s (%d)\n", path_.c_str(), status);
     if (status == VideoPlayer::kVideoReady) {
         prepared_ = true;
-        if (found_)
-            player_.play();
+        if (found_) {
+			player_.play();
+			player_.seek(pos);
+		}
     }
     if (status == VideoPlayer::kVideoCompleted) {
-        if (found_)
-            player_.play();
+        if (found_) {
+			player_.play();
+			player_.seek(pos);
+		}
     }
 }
 
@@ -211,6 +220,7 @@ void ARVideo::onFound()
     found_ = true;
     if (prepared_) {
         player_.play();
+		player_.seek(pos);
     }
 }
 
@@ -226,7 +236,8 @@ void ARVideo::update()
     player_.updateFrame();
 }
 
-ARVideo::CallBack::CallBack(ARVideo* video)
+
+	ARVideo::CallBack::CallBack(ARVideo* video)
 {
     video_ = video;
 }

@@ -54,6 +54,7 @@ public:
     void openTransparentVideoFile(const std::string& path, int texid);
     void openStreamingVideo(const std::string& url, int texid);
 
+    void seek(int position);
     void setVideoStatus(VideoPlayer::Status status);
     void onFound();
     void onLost();
@@ -70,6 +71,7 @@ public:
 
 private:
     VideoPlayer player_;
+	int pos;
     bool prepared_;
     bool found_;
     CallBack* callback_;

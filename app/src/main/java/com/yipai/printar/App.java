@@ -10,13 +10,11 @@ import android.util.Log;
  */
 public class App extends Application {
 	private static final String TAG = App.class.getSimpleName();
-	private static App sInstance;// = new App();
+	private static App sInstance;
 
 	protected static App getInstance() {
 		if (sInstance == null) {
 			Log.e(TAG, "sInstance == null will not enter!!!");
-
-
 		}
 		return sInstance;
 	}

@@ -17,10 +17,11 @@ import android.view.View;
 
 import com.yipai.printar.R;
 import com.yipai.printar.ar.ArCameraActivity;
+import com.yipai.printar.ar.NativeAr;
 import com.yipai.printar.constant.Path;
 import com.yipai.printar.constant.RequestCode;
 import com.yipai.printar.ui.dialog.SingleChoiceDialog;
-import com.yipai.printar.ui.realm.VideoData;
+import com.yipai.printar.bean.VideoData;
 import com.yipai.printar.ui.view.ShotImageRecyclerView;
 import com.yipai.printar.utils.BitmapUtil;
 import com.yipai.printar.utils.file.FileUtil;
@@ -47,7 +48,7 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
 	private List<VideoData> mShotImageList;
 	private BitmapUtil mBitmapUtil;
 	private String mDialogTitle = "选择视频";
-	private String[] mDialogItems = {"本地视频", "网络视频"};
+	private String[] mDialogItems = {"本地视频", "网络视频1", "网络视频2", "网络视频3"};
 	private Handler mHandler = new Handler();
 
 	/**
@@ -60,8 +61,24 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
 				Intent it = new Intent(Intent.ACTION_GET_CONTENT);
 				it.setType("video/*");
 				startActivityForResult(it, RequestCode.RC_VIDEO);
-			} else if (result == 1) {//网络视频
-				mUri = Uri.parse("http://test-epai.oss-cn-shenzhen.aliyuncs.com/video/VR/yangshanhu1002.mp4");
+			} else {
+				String url = null;
+				if (result == 1) {//网络视频
+					url = "http://test-epai.oss-cn-shenzhen.aliyuncs.com/video/VR/yangshanhu1002.mp4";
+				} else if (result == 2) {
+					url = "http://lb.aishang.ctlcdn.com/00000110240002_1/playlist.m3u8?" +
+						"CONTENTID=000001110762000_1&start=20170322031801&end=20170322040301&A" +
+						"UTHINFO=hEcQRKsVzykWOGchNbZ%2BQiWsN8NZ2AtsPVUsXGQV7tzr9QQhp78%2FgaA9N" +
+						"HjiqfbOadtsaf6e7aUU2%2BqckOj9Tw%3D%3D&USERTOKEN=Peu3HyhzwKdNKG%2B5Arg" +
+						"z2G07WdB07EMl";
+				} else if (result == 3) {
+					url = "http://vod.aishang.ctlcdn.com/ceph_201703/static/video/00001" +
+						"000110152894000000000000000/playlist.m3u8?CONTENTID=00001000110152894" +
+						"000000000000000&AUTHINFO=adl%2F%2Bwn3I%2BwsbQQJ9AeXwM9DbxK1kv1nXMrp%2" +
+						"FSQ2ykd2Z5XCc3ZXz1YAJr%2FiDiiOo44EfBEtn33mB4qG8j1WZw%3D%3D&USERTOKEN=" +
+						"revqRrdN8LkDfyAIwO6ajG07WdB07EMl";
+				}
+				mUri = Uri.parse(url);
 				mVideoPath = null;
 				mVideo.setUp(mUri.toString(), JCVideoPlayerStandard.SCREEN_LAYOUT_NORMAL);
 				mVideo.backButton.setVisibility(View.INVISIBLE);

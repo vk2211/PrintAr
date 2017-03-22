@@ -1,7 +1,8 @@
 package com.yipai.printar.utils;
 
 import com.yipai.printar.App;
-import com.yipai.printar.ui.realm.VideoData;
+import com.yipai.printar.bean.VideoData;
+import com.yipai.printar.bean.VideoDataRealm;
 
 import java.util.List;
 
@@ -31,9 +32,9 @@ public class VideoDataSheet {
 	}
 
 	//添加數據
-	public void add(String imagePath, String videoUri,int startTime) {
+	public void add(String imagePath, String videoUri, int startTime) {
 		mRealm.beginTransaction();
-		VideoData videoData = mRealm.createObject(VideoData.class);
+		VideoDataRealm videoData = mRealm.createObject(VideoDataRealm.class);
 		videoData.setImagePath(imagePath);
 		videoData.setVideoPath(videoUri);
 		videoData.setStartTime(startTime);
@@ -41,13 +42,14 @@ public class VideoDataSheet {
 	}
 
 	public void add(VideoData videoData) {
+		VideoDataRealm videoDataRealm = new VideoDataRealm(videoData);
 		mRealm.beginTransaction();
-		mRealm.copyToRealm(videoData);
+		mRealm.copyToRealm(videoDataRealm);
 		mRealm.commitTransaction();
 	}
 
-	public List<VideoData> read() {
-		List<VideoData> list = mRealm.where(VideoData.class).findAll();
+	public List<VideoDataRealm> read() {
+		List<VideoDataRealm> list = mRealm.where(VideoDataRealm.class).findAll();
 		return list;
 	}
 

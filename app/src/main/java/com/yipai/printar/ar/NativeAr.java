@@ -11,6 +11,8 @@
  ******************************************************************************/
 package com.yipai.printar.ar;
 
+import com.yipai.printar.bean.VideoData;
+
 /**
  * Created by yaochuan on 2017/3/15.
  */
@@ -33,7 +35,5 @@ public class NativeAr {
 
 	public static native void rotationChange(boolean portrait);
 
-	public static native void add(String s1, String s2);
-
-	public static native boolean init1();
+	public static native void add(VideoData videoData);
 }

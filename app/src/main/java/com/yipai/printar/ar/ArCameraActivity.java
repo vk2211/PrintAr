@@ -8,7 +8,8 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 
 import com.yipai.printar.R;
-import com.yipai.printar.ui.realm.VideoData;
+import com.yipai.printar.bean.VideoData;
+import com.yipai.printar.bean.VideoDataRealm;
 import com.yipai.printar.utils.VideoDataSheet;
 
 import java.util.List;
@@ -18,7 +19,7 @@ import cn.easyar.engine.EasyAR;
 public class ArCameraActivity extends Activity {
 	static String key = "ADhPHJpveTwDaLq3oUKxG2bkyhKl9OssyICQZUQuUPFNFBC2sspNjqGRLKgiYVhFqac6w4gZI3hTIOvcHejEJzlyvDAjwysnBWPV78834cf88b96469ee05beab0c554856cMccBa7vhF9i0nn3fcmuIxlBmUWZZmwJnaPm4OzbktkrUeIRKlM5x1AC7928lmoJACOZA";
 	private VideoDataSheet mVideoDataSheet;
-	private List<VideoData> mVideoDataList;
+	private List<VideoDataRealm> mVideoDataList;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -27,10 +28,13 @@ public class ArCameraActivity extends Activity {
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON, WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		mVideoDataSheet = VideoDataSheet.get();
 		mVideoDataList = mVideoDataSheet.read();
-		for (VideoData videoData : mVideoDataList) {
-			String uri = videoData.getVideoPath();
+		for (VideoDataRealm videoDataRealm : mVideoDataList) {
+			VideoData videoData = videoDataRealm.get();
 			String p = videoData.getImagePath().replace("/storage/emulated/0", "/sdcard");
-			NativeAr.add(p, uri);
+			String uri = videoData.getVideoPath();
+			videoData.setImagePath(p.replace(".jpg", ""));
+			videoData.setStartTime(videoData.getStartTime()/1000);
+			NativeAr.add(videoData);
 		}
 		EasyAR.initialize(this, key);
 		NativeAr.init();

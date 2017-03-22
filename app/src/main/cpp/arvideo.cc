@@ -7,18 +7,13 @@
 #include <string>
 #include <map>
 #include <vector>
-#include "ar.hpp"
-#include "renderer.hpp"
 #include <jni.h>
 #include <GLES2/gl2.h>
-#ifdef ANDROI1D
-#include <android/log.h>
-#define LOGI(...) __android_log_print(ANDROID_LOG_INFO, "EasyAR", __VA_ARGS__)
-#else
-#define LOGI(...) printf(__VA_ARGS__)
-#endif
+#include "ar.hpp"
+#include "renderer.hpp"
+#include "Log.h"
+#include "VideoData.h"
 
-#define JNIFUNCTION_NATIVE1(sig) Java_cn_easyar_samples_helloarvideo_MainActivity_##sig
 #define JNIFUNCTION_NATIVE(sig) Java_com_yipai_printar_ar_NativeAr_##sig
 
 extern "C" {
@@ -26,22 +21,11 @@ extern "C" {
     JNIEXPORT void JNICALL JNIFUNCTION_NATIVE(destroy(JNIEnv* env, jobject object));
     JNIEXPORT void JNICALL JNIFUNCTION_NATIVE(initGL(JNIEnv* env, jobject object));
     JNIEXPORT void JNICALL JNIFUNCTION_NATIVE(resizeGL(JNIEnv* env, jobject object, jint w, jint h));
-    JNIEXPORT void JNICALL JNIFUNCTION_NATIVE(render(JNIEnv* env, jobject obj));
-    JNIEXPORT void JNICALL JNIFUNCTION_NATIVE(rotationChange(JNIEnv* env, jobject obj, jboolean portrait));
-    JNIEXPORT void JNICALL JNIFUNCTION_NATIVE(add(JNIEnv* env, jobject object, jstring s1, jstring s2));
+    JNIEXPORT void JNICALL JNIFUNCTION_NATIVE(render(JNIEnv* env, jobject object));
+    JNIEXPORT void JNICALL JNIFUNCTION_NATIVE(rotationChange(JNIEnv* env, jobject object, jboolean portrait));
+	JNIEXPORT void JNICALL JNIFUNCTION_NATIVE(add(JNIEnv *env, jobject object, jobject videoData));
 };
-bool jstringToString(JNIEnv* env, jstring jstr, std::string &stlStr);
 
-//#define MAX_RECOGNIZE 100
-//std::string namestr[MAX_RECOGNIZE];
-
-
-JNIEXPORT jboolean JNICALL
-Java_com_yipai_printar_ar_NativeAr_init1(JNIEnv *env, jclass type) {
-
-	// TODO
-
-}
 
 namespace EasyAR {
 	namespace samples {
@@ -52,6 +36,10 @@ public:
 	HelloARVideo();
 
 	~HelloARVideo();
+
+	void push(VideoData v);
+
+	void init();
 
 	virtual void initGL();
 
@@ -70,9 +58,7 @@ private:
 	std::vector<int> texid;
 	ARVideo *video;
 	VideoRenderer *video_renderer;
-public:
-	std::vector<std::string> namestr;
-	std::map<std::string, std::string> Map;
+	std::vector<VideoData> m_vVideoData;
 };
 
 HelloARVideo::HelloARVideo() {
@@ -91,11 +77,23 @@ HelloARVideo::~HelloARVideo() {
 	}
 }
 
+void HelloARVideo::push(VideoData v) {
+	m_vVideoData.push_back(v);
+}
+
+void HelloARVideo::init() {
+	std::vector<VideoData>::iterator iter;
+	for (iter = m_vVideoData.begin(); iter != m_vVideoData.end(); iter++) {
+		LOGI("############# nativeInit, str=%s", (*iter).getImagePath().c_str());
+		loadFromImage((*iter).getImagePath()+".jpg");
+	}
+}
+
 void HelloARVideo::initGL() {
 	augmenter_ = Augmenter();
 	augmenter_.attachCamera(camera_);
-	std::vector<std::string>::iterator iter;
-	for (iter = namestr.begin(); iter != namestr.end(); iter++) {
+	std::vector<VideoData>::iterator iter;
+	for (iter = m_vVideoData.begin(); iter != m_vVideoData.end(); iter++) {
 		addGL();
 	}
 }
@@ -125,10 +123,11 @@ void HelloARVideo::render() {
 	augmenter_.drawVideoBackground();
 	glViewport(viewport_[0], viewport_[1], viewport_[2], viewport_[3]);
 
-	AugmentedTarget::Status status = frame.targets()[0].status();
-  LOGI("############### AugmentedTarget::Status status = frame.targets()[0].status()");
+	AugmentedTargetList targets = frame.targets();
+	AugmentedTarget::Status status = targets[0].status();
+	LOGI("############### AugmentedTarget::Status status = frame.targets()[0].status()=%d", status);
 	if (status == AugmentedTarget::kTargetStatusTracked) {
-		int id = frame.targets()[0].target().id();
+		int id = targets[0].target().id();
 		if (active_target && active_target != id) {
 			video->onLost();
 			delete video;
@@ -138,18 +137,16 @@ void HelloARVideo::render() {
 		}
 		if (!tracked_target) {
 			if (video == NULL) {
-				LOGI("############### target=%s", frame.targets()[0].target().name());
-
+				LOGI("############### target=%s", targets[0].target().name());
 				int i = 0;
-				LOGI("############### else, target=%s, namestr[i]=%s",
-					 frame.targets()[0].target().name(), namestr[i].c_str());
-				size_t size = namestr.size();
+				size_t size = m_vVideoData.size();
 				for (i = 0; i < size; i++) {
-					if (frame.targets()[0].target().name() == namestr.at(i) && texid[i]) {
-						LOGI("###################### else, url=%s", Map[namestr[i]].c_str());
+					if (targets[0].target().name() == m_vVideoData[i].getImagePath() && texid[i]) {
+						LOGI("###################### else, url=%s", m_vVideoData[i].getVideoPath().c_str());
 						video = new ARVideo;
-						video->openStreamingVideo(Map[namestr[i]], texid[i]);
+						video->openStreamingVideo(m_vVideoData[i].getVideoPath().c_str(), texid[i]);
 						video_renderer = renderer[i];
+						video->seek((int) m_vVideoData[i].getStartTime());
 						break;
 					}
 				}
@@ -161,8 +158,8 @@ void HelloARVideo::render() {
 			}
 		}
 		Matrix44F projectionMatrix = getProjectionGL(camera_.cameraCalibration(), 0.2f, 500.f);
-		Matrix44F cameraview = getPoseGL(frame.targets()[0].pose());
-		ImageTarget target = frame.targets()[0].target().cast_dynamic<ImageTarget>();
+		Matrix44F cameraview = getPoseGL(targets[0].pose());
+		ImageTarget target = targets[0].target().cast_dynamic<ImageTarget>();
 		if (tracked_target) {
 			video->update();
 			video_renderer->render(projectionMatrix, cameraview, target.size());
@@ -185,22 +182,8 @@ bool HelloARVideo::clear() {
 	}
 	return true;
 }
-	}
-}
 
-bool jstringToString(JNIEnv *env, jstring jstr, std::string &stlStr) {
-	if (jstr == NULL) {
-		stlStr.assign("");
-		return true;
 	}
-	const char *str = env->GetStringUTFChars(jstr, NULL);
-	if (str == NULL) {
-		LOGI("GetStringUTFChars fail!");
-		return false; /* OutOfMemoryError already thrown */
-	}
-	stlStr.assign(str);
-	env->ReleaseStringUTFChars(jstr, str);
-	return true;
 }
 
 static EasyAR::samples::HelloARVideo ar;
@@ -208,11 +191,7 @@ static EasyAR::samples::HelloARVideo ar;
 JNIEXPORT jboolean JNICALL JNIFUNCTION_NATIVE(init(JNIEnv * , jobject)) {
 	int i;
 	bool status = ar.initCamera();
-	std::vector<std::string>::iterator iter;
-	for (iter = ar.namestr.begin(); iter != ar.namestr.end(); iter++) {
-		LOGI("############# nativeInit, str=%s", (*iter).c_str());
-		ar.loadFromImage(*iter + ".jpg");
-	}
+	ar.init();
 	status &= ar.start();
 	return status;
 }
@@ -237,12 +216,8 @@ JNIEXPORT void JNICALL JNIFUNCTION_NATIVE(rotationChange(JNIEnv * , jobject, jbo
 	ar.setPortrait(portrait);
 }
 
-JNIEXPORT void JNICALL JNIFUNCTION_NATIVE(add(JNIEnv * env, jobject, jstring s1, jstring s2)) {
-	std::string str1;
-	std::string str2;
-	jstringToString(env, s1, str1);
-	jstringToString(env, s2, str2);
-	LOGI("$$$$$$$$$$$$$$$$$ s1=%s, s2=%s", str1.c_str(), str2.c_str());
-	ar.namestr.push_back(str1.replace(str1.find(".jpg"), 4, ""));
-	ar.Map[str1] = str2;
+JNIEXPORT void JNICALL JNIFUNCTION_NATIVE(add(JNIEnv *env, jobject, jobject videoData)) {
+	VideoData v;
+	getVideoDataFromObject(env, videoData, v);
+	ar.push(v);
 }

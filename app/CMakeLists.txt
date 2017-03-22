@@ -35,6 +35,8 @@ add_library( # Sets the name of the library.
              src/main/cpp/arvideo.cc
              src/main/cpp/renderer.cc
              src/main/cpp/ar.cc
+             src/main/cpp/Common.cpp
+             src/main/cpp/VideoData.cpp
           )
 
 # Searches for a specified prebuilt library and stores the path as a
