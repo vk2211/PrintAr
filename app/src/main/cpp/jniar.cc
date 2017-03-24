@@ -1,9 +1,3 @@
-/**
-* Copyright (c) 2015-2016 VisionStar Information Technology (Shanghai) Co., Ltd. All Rights Reserved.
-* EasyAR is the registered trademark or trademark of VisionStar Information Technology (Shanghai) Co., Ltd in China
-* and other countries for the augmented reality technology developed by VisionStar Information Technology (Shanghai) Co., Ltd.
-*/
-
 #include <string>
 #include <map>
 #include <vector>
@@ -25,7 +19,7 @@ extern "C" {
     JNIEXPORT void JNICALL JNIFUNCTION_NATIVE(render(JNIEnv* env, jobject object));
     JNIEXPORT void JNICALL JNIFUNCTION_NATIVE(rotationChange(JNIEnv* env, jobject object, jboolean portrait));
 	JNIEXPORT void JNICALL JNIFUNCTION_NATIVE(add(JNIEnv *env, jobject object, jobject videoData));
-	JNIEXPORT jobject JNICALL JNIFUNCTION_NATIVE(get(JNIEnv *env, jclass type));
+	JNIEXPORT jobject JNICALL JNIFUNCTION_NATIVE(get(JNIEnv *env, jobject object));
 };
 
 static EasyAR::samples::HelloARVideo ar;
@@ -64,6 +58,6 @@ JNIEXPORT void JNICALL JNIFUNCTION_NATIVE(add(JNIEnv *env, jobject, jobject vide
 	ar.push(v);
 }
 
-JNIEXPORT jobject JNICALL JNIFUNCTION_NATIVE(get(JNIEnv *env, jclass type)) {
-	return convertVideoDataToJavaObject(env, *ar.getCurrentVideoData());
+JNIEXPORT jobject JNICALL JNIFUNCTION_NATIVE(get(JNIEnv *env, jobject)) {
+	return convertVideoDataToJavaObject(env, ar.getCurrentVideoData());
 }

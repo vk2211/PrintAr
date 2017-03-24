@@ -1,29 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
+<FrameLayout
 	android:id="@+id/activity_ar_camera"
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:tools="http://schemas.android.com/tools"
 	android:layout_width="match_parent"
 	android:layout_height="match_parent"
 	tools:context="com.yipai.printar.ar.ArCameraActivity">
+
 	<FrameLayout
 		android:id="@+id/preview"
 		android:layout_width="match_parent"
-		android:layout_height="match_parent"
-		android:layout_alignParentTop="true"
-		android:layout_alignParentLeft="true"
-		android:layout_alignParentStart="true">
-		<fm.jiecao.jcvideoplayer_lib.JCVideoPlayerStandard
-			android:id="@+id/idTakeOffJCVideo"
-			android:layout_width="400dp"
-			android:layout_height="250dp"
-			android:visibility="gone"
-			android:layout_gravity="center"/>
-		<TextView
-			android:id="@+id/idTakeOff"
-			android:layout_width="80dp"
-			android:layout_height="wrap_content"
-			android:drawableTop="@drawable/ic_movice_selector"
-			android:layout_gravity="bottom"/>
+		android:layout_height="match_parent">
 	</FrameLayout>
-</RelativeLayout>
+
+	<fm.jiecao.jcvideoplayer_lib.JCVideoPlayerStandard
+		android:id="@+id/idTakeOffJCVideo"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:layout_gravity="center"
+		android:layout_margin="10dp"
+		android:visibility="gone"/>
+
+	<TextView
+		android:id="@+id/idTakeOff"
+		android:layout_width="80dp"
+		android:layout_height="wrap_content"
+		android:layout_gravity="bottom"
+		android:drawableTop="@drawable/ic_movice_selector"/>
+</FrameLayout>

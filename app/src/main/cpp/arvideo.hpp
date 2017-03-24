@@ -25,9 +25,11 @@ public:
 
 	virtual bool clear();
 
-	const VideoData *getCurrentVideoData() const
+	const VideoData getCurrentVideoData() const
 	{
-		return m_pVideoData;
+		VideoData videoData(*m_pVideoData);
+		videoData.setStartTime(video->getPos());
+		return videoData;
 	}
 private:
 	Vec2I view_size;

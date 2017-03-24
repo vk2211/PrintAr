@@ -18,5 +18,4 @@ package com.yipai.printar.constant;
 public class RequestCode {
 	private static final String TAG = RequestCode.class.getSimpleName();
 	public static final int RC_VIDEO = 101;
-	public static int BACKNUMBER=0;
 }

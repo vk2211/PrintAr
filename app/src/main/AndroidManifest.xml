@@ -23,7 +23,9 @@
 			android:name=".ar.ArCameraActivity"
 			android:screenOrientation="landscape">
 		</activity>
+		<activity
+			android:name=".ui.ArActivity"
+			android:screenOrientation="landscape">
+		</activity>
 	</application>
-	<!--android:screenOrientation="landscape"-->
-	<!--android:configChanges="orientation|keyboardHidden|screenSize|smallestScreenSize"-->
 </manifest>

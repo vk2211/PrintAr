@@ -14,10 +14,10 @@ import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.yipai.printar.R;
-import com.yipai.printar.ar.ArCameraActivity;
 import com.yipai.printar.bean.VideoData;
 import com.yipai.printar.constant.Path;
 import com.yipai.printar.constant.RequestCode;
@@ -30,16 +30,27 @@ import com.yipai.printar.utils.log.TimeUtil;
 import java.io.File;
 import java.util.HashMap;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
 import fm.jiecao.jcvideoplayer_lib.JCVideoPlayer;
 import fm.jiecao.jcvideoplayer_lib.JCVideoPlayerStandard;
 
 public class StartActivity extends AppCompatActivity implements View.OnClickListener {
-	private JCVideoPlayer.JCAutoFullscreenListener sensorEventListener;
-	private SensorManager sensorManager;
+	@BindView(R.id.video)
 	JCVideoPlayerStandard mVideo;
-	View mOpenVideo;
-	View mPrintFrame;
-	View mScanPhoto;
+	@BindView(R.id.openVideo)
+	TextView mOpenVideo;
+	@BindView(R.id.printFrame)
+	TextView mPrintFrame;
+	@BindView(R.id.scanPhoto)
+	TextView mScanPhoto;
+	@BindView(R.id.shotList)
+	ShotImageRecyclerView mShotList;
+	private JCVideoPlayer.JCAutoFullscreenListener sensorEventListener;
+	private static final long WAIT_TIME = 2000L;
+	private long TOUCH_TIME = 0;
+	private SensorManager sensorManager;
 	private Uri mUri;
 	private SingleChoiceDialog mSingleChoiceDialog;
 	private String mVideoPath;
@@ -89,6 +100,7 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_start);
+		ButterKnife.bind(this);
 		InitStartActivity();
 	}
 
@@ -126,11 +138,16 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
 		if (JCVideoPlayer.backPress()) {
 			return;
 		}
-		RequestCode.BACKNUMBER++;
-		if (RequestCode.BACKNUMBER == 1) {
-			Toast.makeText(this, "再按一次退出程序！", Toast.LENGTH_SHORT).show();
-		} else if (RequestCode.BACKNUMBER >= 2) {
-			super.onBackPressed();
+		super.onBackPressed();
+	}
+
+	@Override
+	public void finish() {
+		if (System.currentTimeMillis() - TOUCH_TIME < WAIT_TIME) {
+			super.finish();
+		} else {
+			TOUCH_TIME = System.currentTimeMillis();
+			Toast.makeText(this, R.string.press_again_exit, Toast.LENGTH_SHORT).show();
 		}
 	}
 
@@ -195,10 +212,6 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
 	 * 初始化
 	 */
 	private void InitStartActivity() {
-		mVideo = (JCVideoPlayerStandard) findViewById(R.id.video);
-		mOpenVideo = findViewById(R.id.openVideo);
-		mPrintFrame = findViewById(R.id.printFrame);
-		mScanPhoto = findViewById(R.id.scanPhoto);
 		sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 		sensorEventListener = new JCVideoPlayer.JCAutoFullscreenListener();
 		FileUtil.sdcard.createDir(Path.DIR);
@@ -210,15 +223,11 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
 		m.setOrientation(LinearLayoutManager.VERTICAL);
 		mShotImageRecycleView.setLayoutManager(m);
 		mShotImageRecycleView.enableRefresh(false);
-		mOpenVideo.setOnClickListener(this);
-		mPrintFrame.setOnClickListener(this);
-		mScanPhoto.setOnClickListener(this);
-		RequestCode.BACKNUMBER=0;
 	}
 
-	@Override
-	public void onClick(View v) {
-		switch (v.getId()) {
+	@OnClick({R.id.openVideo, R.id.printFrame, R.id.scanPhoto})
+	public void onClick(View view) {
+		switch (view.getId()) {
 		case R.id.openVideo:
 			mSingleChoiceDialog.showSingleChoiceDialog();
 			break;
@@ -227,10 +236,9 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
 			getBitmapsFromVideo(time * 1000);
 			break;
 		case R.id.scanPhoto:
-			Intent it = new Intent(StartActivity.this, ArCameraActivity.class);
+			Intent it = new Intent(StartActivity.this, ArActivity.class);
 			startActivity(it);
 			break;
 		}
 	}
-
 }
