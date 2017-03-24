@@ -1,5 +1,6 @@
 package com.yipai.printar.ui;
 
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
@@ -33,6 +34,7 @@ public class ArActivity extends ArCameraActivity {
 		ButterKnife.bind(this);
 //		idTakeOff.bringToFront();
 //		idTakeOffJCVideo.bringToFront();
+		JCVideoPlayer.NORMAL_ORIENTATION= ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
 		idTakeOff.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
@@ -77,6 +79,7 @@ public class ArActivity extends ArCameraActivity {
 		if (mIsPlaying) {
 			idTakeOffJCVideo.startButton.performClick();
 			idTakeOffJCVideo.setVisibility(View.GONE);
+			mIsPlaying = false;
 			return;
 		}
 		if (System.currentTimeMillis() - TOUCH_TIME < WAIT_TIME) {
