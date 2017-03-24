@@ -36,4 +36,6 @@ public class NativeAr {
 	public static native void rotationChange(boolean portrait);
 
 	public static native void add(VideoData videoData);
+
+	public static native VideoData get();
 }

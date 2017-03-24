@@ -7,59 +7,16 @@
 #include <string>
 #include <map>
 #include <vector>
-#include <jni.h>
 #include <GLES2/gl2.h>
 #include "ar.hpp"
 #include "renderer.hpp"
 #include "Log.h"
 #include "VideoData.h"
-
-#define JNIFUNCTION_NATIVE(sig) Java_com_yipai_printar_ar_NativeAr_##sig
-
-extern "C" {
-    JNIEXPORT jboolean JNICALL JNIFUNCTION_NATIVE(init(JNIEnv* env, jobject object));
-    JNIEXPORT void JNICALL JNIFUNCTION_NATIVE(destroy(JNIEnv* env, jobject object));
-    JNIEXPORT void JNICALL JNIFUNCTION_NATIVE(initGL(JNIEnv* env, jobject object));
-    JNIEXPORT void JNICALL JNIFUNCTION_NATIVE(resizeGL(JNIEnv* env, jobject object, jint w, jint h));
-    JNIEXPORT void JNICALL JNIFUNCTION_NATIVE(render(JNIEnv* env, jobject object));
-    JNIEXPORT void JNICALL JNIFUNCTION_NATIVE(rotationChange(JNIEnv* env, jobject object, jboolean portrait));
-	JNIEXPORT void JNICALL JNIFUNCTION_NATIVE(add(JNIEnv *env, jobject object, jobject videoData));
-};
+#include "arvideo.hpp"
 
 
 namespace EasyAR {
 	namespace samples {
-
-
-class HelloARVideo : public AR {
-public:
-	HelloARVideo();
-
-	~HelloARVideo();
-
-	void push(VideoData v);
-
-	void init();
-
-	virtual void initGL();
-
-	void addGL();
-
-	virtual void resizeGL(int width, int height);
-
-	virtual void render();
-
-	virtual bool clear();
-private:
-	Vec2I view_size;
-	std::vector<VideoRenderer *> renderer;
-	int tracked_target;
-	int active_target;
-	std::vector<int> texid;
-	ARVideo *video;
-	VideoRenderer *video_renderer;
-	std::vector<VideoData> m_vVideoData;
-};
 
 HelloARVideo::HelloARVideo() {
 	int i;
@@ -147,6 +104,7 @@ void HelloARVideo::render() {
 						video->openStreamingVideo(m_vVideoData[i].getVideoPath().c_str(), texid[i]);
 						video_renderer = renderer[i];
 						video->seek((int) m_vVideoData[i].getStartTime());
+						m_pVideoData = &m_vVideoData[i];
 						break;
 					}
 				}
@@ -179,45 +137,10 @@ bool HelloARVideo::clear() {
 		video = NULL;
 		tracked_target = 0;
 		active_target = 0;
+		m_vVideoData.clear();
 	}
 	return true;
 }
 
 	}
-}
-
-static EasyAR::samples::HelloARVideo ar;
-
-JNIEXPORT jboolean JNICALL JNIFUNCTION_NATIVE(init(JNIEnv * , jobject)) {
-	int i;
-	bool status = ar.initCamera();
-	ar.init();
-	status &= ar.start();
-	return status;
-}
-
-JNIEXPORT void JNICALL JNIFUNCTION_NATIVE(destroy(JNIEnv * , jobject)) {
-	ar.clear();
-}
-
-JNIEXPORT void JNICALL JNIFUNCTION_NATIVE(initGL(JNIEnv * , jobject)) {
-	ar.initGL();
-}
-
-JNIEXPORT void JNICALL JNIFUNCTION_NATIVE(resizeGL(JNIEnv * , jobject, jint w, jint h)) {
-	ar.resizeGL(w, h);
-}
-
-JNIEXPORT void JNICALL JNIFUNCTION_NATIVE(render(JNIEnv * , jobject)) {
-	ar.render();
-}
-
-JNIEXPORT void JNICALL JNIFUNCTION_NATIVE(rotationChange(JNIEnv * , jobject, jboolean portrait)) {
-	ar.setPortrait(portrait);
-}
-
-JNIEXPORT void JNICALL JNIFUNCTION_NATIVE(add(JNIEnv *env, jobject, jobject videoData)) {
-	VideoData v;
-	getVideoDataFromObject(env, videoData, v);
-	ar.push(v);
 }

@@ -4,7 +4,7 @@
 
 class VideoData {
 public:
-	std::string getImagePath() {
+	std::string getImagePath() const {
 		return mImagePath;
 	}
 
@@ -12,7 +12,7 @@ public:
 		mImagePath = imagePath;
 	}
 
-	std::string getVideoPath() {
+	std::string getVideoPath() const {
 		return mVideoPath;
 	}
 
@@ -20,7 +20,7 @@ public:
 		mVideoPath = videoPath;
 	}
 
-	long long getStartTime() {
+	long long getStartTime() const {
 		return mStartTime;
 	}
 
@@ -40,6 +40,8 @@ private:
 	long long mStartTime;
 };
 
-int getVideoDataFromObject(JNIEnv *jenv, const jobject &jVideoData, VideoData &videoData);
+int getVideoDataFromJavaObject(JNIEnv *jenv, const jobject &jVideoData, VideoData &videoData);
+
+jobject convertVideoDataToJavaObject(JNIEnv *jenv, const VideoData &videoData);
 
 #endif
