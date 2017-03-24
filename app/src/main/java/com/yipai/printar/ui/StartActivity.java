@@ -14,14 +14,14 @@ import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.view.View;
+import android.widget.Toast;
 
 import com.yipai.printar.R;
 import com.yipai.printar.ar.ArCameraActivity;
-import com.yipai.printar.ar.NativeAr;
+import com.yipai.printar.bean.VideoData;
 import com.yipai.printar.constant.Path;
 import com.yipai.printar.constant.RequestCode;
 import com.yipai.printar.ui.dialog.SingleChoiceDialog;
-import com.yipai.printar.bean.VideoData;
 import com.yipai.printar.ui.view.ShotImageRecyclerView;
 import com.yipai.printar.utils.BitmapUtil;
 import com.yipai.printar.utils.file.FileUtil;
@@ -29,7 +29,6 @@ import com.yipai.printar.utils.log.TimeUtil;
 
 import java.io.File;
 import java.util.HashMap;
-import java.util.List;
 
 import fm.jiecao.jcvideoplayer_lib.JCVideoPlayer;
 import fm.jiecao.jcvideoplayer_lib.JCVideoPlayerStandard;
@@ -45,12 +44,10 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
 	private SingleChoiceDialog mSingleChoiceDialog;
 	private String mVideoPath;
 	private ShotImageRecyclerView mShotImageRecycleView;
-	private List<VideoData> mShotImageList;
 	private BitmapUtil mBitmapUtil;
 	private String mDialogTitle = "选择视频";
 	private String[] mDialogItems = {"本地视频", "网络视频1", "网络视频2", "网络视频3"};
 	private Handler mHandler = new Handler();
-
 	/**
 	 * 选择对话框接口
 	 */
@@ -129,7 +126,12 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
 		if (JCVideoPlayer.backPress()) {
 			return;
 		}
-		super.onBackPressed();
+		RequestCode.BACKNUMBER++;
+		if (RequestCode.BACKNUMBER == 1) {
+			Toast.makeText(this, "再按一次退出程序！", Toast.LENGTH_SHORT).show();
+		} else if (RequestCode.BACKNUMBER >= 2) {
+			super.onBackPressed();
+		}
 	}
 
 	@Override
@@ -204,17 +206,14 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
 		mSingleChoiceDialog = new SingleChoiceDialog(this, mSingleSelectInterface, mDialogTitle, mDialogItems);
 		mShotImageRecycleView = (ShotImageRecyclerView) this.findViewById(R.id.shotList);
 		mBitmapUtil = new BitmapUtil(StartActivity.this);
-//		mCacheAdapter = new CacheAdapter(StartActivity.this);
-//		mShotImageList = new ArrayList<>();
-//		mCacheAdapter.addAll(mShotImageList);
 		LinearLayoutManager m = new LinearLayoutManager(this);
 		m.setOrientation(LinearLayoutManager.VERTICAL);
 		mShotImageRecycleView.setLayoutManager(m);
-//		mShotImageRecycleView.setAdapter(mCacheAdapter);
 		mShotImageRecycleView.enableRefresh(false);
 		mOpenVideo.setOnClickListener(this);
 		mPrintFrame.setOnClickListener(this);
 		mScanPhoto.setOnClickListener(this);
+		RequestCode.BACKNUMBER=0;
 	}
 
 	@Override

@@ -27,7 +27,7 @@
 		android:layout_height="wrap_content"
 		android:layout_marginLeft="10dp"
 		android:layout_weight="1"
-		android:drawableTop="@drawable/ic_printer"
+		android:drawableTop="@drawable/ic_printer_selector"
 		android:gravity="center_horizontal"
 		android:text="@string/string_print"/>
 

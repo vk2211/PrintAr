@@ -4,6 +4,7 @@
 * and other countries for the augmented reality technology developed by VisionStar Information Technology (Shanghai) Co., Ltd.
 */
 
+#include <jni.h>
 #include <string>
 #include <map>
 #include <vector>
