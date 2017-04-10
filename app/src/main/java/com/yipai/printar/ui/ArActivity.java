@@ -2,6 +2,7 @@ package com.yipai.printar.ui;
 
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -39,14 +40,16 @@ public class ArActivity extends ArCameraActivity {
 			@Override
 			public void onClick(View view) {
 				mIsPlaying = !mIsPlaying;
-				if (mIsPlaying) {
-					idTakeOffJCVideo.setVisibility(View.VISIBLE);
-					VideoData videoData = NativeAr.get();
-					String videoPath = videoData.getVideoPath();
-					playVideo(videoPath);
-				} else {
-					idTakeOffJCVideo.setVisibility(View.GONE);
-					idTakeOffJCVideo.startButton.performClick();
+				VideoData videoData = NativeAr.get();
+				String videoPath = videoData.getVideoPath();
+				if (!TextUtils.isEmpty(videoPath)) {
+					if (mIsPlaying) {
+						idTakeOffJCVideo.setVisibility(View.VISIBLE);
+						playVideo(videoPath);
+					} else {
+						idTakeOffJCVideo.setVisibility(View.GONE);
+						idTakeOffJCVideo.startButton.performClick();
+					}
 				}
 			}
 		});
@@ -65,6 +68,7 @@ public class ArActivity extends ArCameraActivity {
 		idTakeOffJCVideo.setVisibility(View.VISIBLE);
 		idTakeOffJCVideo.startButton.performClick();
 		idTakeOffJCVideo.fullscreenButton.setVisibility(View.GONE);
+		idTakeOffJCVideo.tinyBackImageView.setVisibility(View.GONE);
 	}
 
 	public void onBackPressed() {

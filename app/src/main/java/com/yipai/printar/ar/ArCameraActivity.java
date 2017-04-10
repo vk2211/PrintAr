@@ -17,7 +17,9 @@ import java.util.List;
 import cn.easyar.engine.EasyAR;
 
 public class ArCameraActivity extends AppCompatActivity {
-	static String key = "ADhPHJpveTwDaLq3oUKxG2bkyhKl9OssyICQZUQuUPFNFBC2sspNjqGRLKgiYVhFqac6w4gZI3hTIOvcHejEJzlyvDAjwysnBWPV78834cf88b96469ee05beab0c554856cMccBa7vhF9i0nn3fcmuIxlBmUWZZmwJnaPm4OzbktkrUeIRKlM5x1AC7928lmoJACOZA";
+	static String key = "ADhPHJpveTwDaLq3oUKxG2bkyhKl9OssyICQZUQuUPFNFBC2sspNjqGRLKgiYVhFqac6w4gZI3h" +
+		"TIOvcHejEJzlyvDAjwysnBWPV78834cf88b96469ee05beab0c554856cMccBa7vhF9i0nn3fcmuIxlBmUWZZmwJnaP" +
+		"m4OzbktkrUeIRKlM5x1AC7928lmoJACOZA";
 	private VideoDataSheet mVideoDataSheet;
 	private List<VideoDataRealm> mVideoDataList;
 

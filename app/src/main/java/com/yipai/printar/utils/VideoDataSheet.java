@@ -53,4 +53,14 @@ public class VideoDataSheet {
 		return list;
 	}
 
+	public boolean contains(String imagePath) {
+		List<VideoDataRealm> list = mRealm.where(VideoDataRealm.class).equalTo("mImagePath", imagePath).findAll();
+		return list.size() > 0;
+	}
+
+	public void clear() {
+		mRealm.beginTransaction();
+		mRealm.deleteAll();
+		mRealm.commitTransaction();
+	}
 }

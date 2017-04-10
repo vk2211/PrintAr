@@ -27,9 +27,19 @@ public:
 
 	const VideoData getCurrentVideoData() const
 	{
-		VideoData videoData(*m_pVideoData);
-		videoData.setStartTime(video->getPos());
-		return videoData;
+		if (m_pVideoData != NULL)
+		{
+			VideoData videoData(*m_pVideoData);
+			videoData.setStartTime(video->getPos());
+			return videoData;
+		}
+		else
+		{
+			VideoData videoData;
+			videoData.setVideoPath("");
+			videoData.setImagePath("");
+			return videoData;
+		}
 	}
 private:
 	Vec2I view_size;

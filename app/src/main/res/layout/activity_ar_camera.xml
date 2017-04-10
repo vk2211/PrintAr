@@ -26,5 +26,6 @@
 		android:layout_width="80dp"
 		android:layout_height="wrap_content"
 		android:layout_gravity="bottom"
+		android:alpha="0.3"
 		android:drawableTop="@drawable/ic_movice_selector"/>
 </FrameLayout>

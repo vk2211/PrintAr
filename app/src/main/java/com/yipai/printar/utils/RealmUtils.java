@@ -33,6 +33,5 @@ public class RealmUtils {
 	/***获得realm对象*/
 	public Realm getRealm() {
 		return Realm.getInstance(new RealmConfiguration.Builder(App.getContext()).name(realName).build());
-
 	}
 }

@@ -30,6 +30,16 @@
 			android:name=".ui.ArActivity"
 			android:screenOrientation="landscape">
 		</activity>
+		<activity
+			android:name=".ui.YipaiDemoActivity"
+			android:label="@string/title_activity_yipai_demo"
+			android:theme="@style/AppTheme">
+			<!--<intent-filter>-->
+				<!--<action android:name="android.intent.action.MAIN"/>-->
+
+				<!--<category android:name="android.intent.category.LAUNCHER"/>-->
+			<!--</intent-filter>-->
+		</activity>
 	</application>
 
 </manifest>
